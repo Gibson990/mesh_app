@@ -1,0 +1,54 @@
+Downloading android-arm-profile/linux-x64 tools...                 244ms
+Downloading android-arm-release/linux-x64 tools...                 152ms
+Downloading android-arm64-profile/linux-x64 tools...               146ms
+Downloading android-arm64-release/linux-x64 tools...               140ms
+Downloading android-x64-profile/linux-x64 tools...                 141ms
+Downloading android-x64-release/linux-x64 tools...                 135ms
+Running Gradle task 'assembleRelease'...                        
+Checking the license for package NDK (Side by side) 27.0.12077973 in /home/ubuntu/android-sdk/licenses
+License for package NDK (Side by side) 27.0.12077973 accepted.
+Preparing "Install NDK (Side by side) 27.0.12077973 v.27.0.12077973".
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" ready.
+Installing NDK (Side by side) 27.0.12077973 in /home/ubuntu/android-sdk/ndk/27.0.12077973
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" complete.
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" finished.
+The message received from the daemon indicates that the daemon has disappeared.
+Build request sent: Build{id=db88da95-f18a-4137-989c-56ae0d495832, currentDir=/home/ubuntu/mesh_app/android}
+Attempting to read last messages from the daemon log...
+Daemon pid: 4659
+  log file: /home/ubuntu/.gradle/daemon/8.12/daemon-4659.out.log
+----- Last 20 lines from daemon log file - daemon-4659.out.log -----
+2025-10-25T10:02:39.187-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+2025-10-25T10:02:39.188-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+2025-10-25T10:02:39.188-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+2025-10-25T10:02:39.189-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] resetting idle timer
+2025-10-25T10:02:39.189-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2025-10-25T10:02:39.190-0400 [INFO] [org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy] Daemon is about to start building Build{id=db88da95-f18a-4137-989c-56ae0d495832, currentDir=/home/ubuntu/mesh_app/android}. Dispatching build started information...
+2025-10-25T10:02:39.190-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 22: dispatching org.gradle.launcher.daemon.protocol.BuildStarted@43199a91
+2025-10-25T10:02:39.191-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment] Configuring env variables: [PATH, PW_TEST_SCREENSHOT_NO_FONTS_READY, APP_ENV, TZ, OTEL_TRACES_EXPORTER, ANDROID_HOME, SUDO_USER, PNPM_HOME, MAIL, NEKO_USERNAME, OTEL_TRACE_CUSTOM_SAMPLER_EXCLUDED_URLS, LOGNAME, PWD, APP_DOMAIN, RUNTIME_API_HOST, NVM_CD_FLAGS, LESSOPEN, SHELL, NEKO_ADMIN_PASSWORD, OLDPWD, CODE_SERVER_PASSWORD, OTEL_SERVICE_NAME, DEPLOY_WASMER_OWNER, OTEL_TRACES_SAMPLER_RATIO, LS_COLORS, SHLVL, LESSCLOSE, OTEL_PYTHON_LOG_CORRELATION, FLUTTER_ROOT, OPENAI_API_BASE, TERM, CODE_SERVER_PORT, LANG, XDG_SESSION_ID, XDG_SESSION_TYPE, OTEL_BSP_MAX_EXPORT_BATCH_SIZE, SUDO_GID, NVM_INC, SENTRY_DSN, SUDO_UID, XDG_SESSION_CLASS, OTEL_EXPORTER_OTLP_ENDPOINT, NVM_DIR, OTEL_BSP_SCHEDULE_DELAY, LAST_COMMIT_HASH, USER, GH_TOKEN, SUDO_COMMAND, CODE_SERVER_DOMAIN, OTEL_RESOURCE_ATTRIBUTES, FLUTTER_ALREADY_LOCKED, OPENAI_BASE_URL, OPENAI_API_KEY, XDG_RUNTIME_DIR, NVM_BIN, HOME, NEKO_USER_PASSWORD]
+2025-10-25T10:02:39.197-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.LogToClient] About to start relaying all logs to the client via the connection.
+2025-10-25T10:02:39.197-0400 [INFO] [org.gradle.launcher.daemon.server.exec.LogToClient] The client will now receive all logging from the daemon (pid: 4659). The daemon log file: /home/ubuntu/.gradle/daemon/8.12/daemon-4659.out.log
+2025-10-25T10:02:39.199-0400 [INFO] [org.gradle.launcher.daemon.server.exec.LogAndCheckHealth] Starting build in new daemon [memory: 8 GiB]
+2025-10-25T10:02:39.201-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] The daemon has started executing the build.
+2025-10-25T10:02:39.202-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] Executing build with daemon context: DefaultDaemonContext[uid=c45ded99-d232-4d86-a2aa-045aadced642,javaHome=/usr/lib/jvm/java-17-openjdk-amd64,javaVersion=17,javaVendor=Ubuntu,daemonRegistryDir=/home/ubuntu/.gradle/daemon,pid=4659,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country,-Duser.language=en,-Duser.variant]
+Checking the license for package NDK (Side by side) 27.0.12077973 in /home/ubuntu/android-sdk/licenses
+License for package NDK (Side by side) 27.0.12077973 accepted.
+Preparing "Install NDK (Side by side) 27.0.12077973 v.27.0.12077973".
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" ready.
+Installing NDK (Side by side) 27.0.12077973 in /home/ubuntu/android-sdk/ndk/27.0.12077973
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" complete.
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" finished.----- End of the daemon log -----
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+Running Gradle task 'assembleRelease'...                          927.9s
+Gradle task assembleRelease failed with exit code 1
