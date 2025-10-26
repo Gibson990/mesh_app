@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mesh_app/core/models/user.dart';
 import 'package:mesh_app/core/constants/app_constants.dart';
+import 'package:mesh_app/core/algorithms/encryption_service.dart';
 import 'dart:convert';
 
 class AuthService {
@@ -55,25 +56,33 @@ class AuthService {
     }
   }
 
-  // Login as higher-access user
+  // Login as higher-access user with secure password hashing
   Future<bool> loginHigherAccess(String userId, String password) async {
     try {
-      // Verify credentials
-      if (!AppConstants.higherAccessCredentials.containsKey(userId)) {
+      // Verify user exists
+      if (!AppConstants.defaultAdminPasswordHashes.containsKey(userId)) {
+        developer.log('❌ Invalid username: $userId');
         return false;
       }
 
-      if (AppConstants.higherAccessCredentials[userId] != password) {
+      // Hash the provided password
+      final passwordHash = EncryptionService.generateHash(password);
+      
+      // Compare hashes (constant-time comparison would be better)
+      final expectedHash = AppConstants.defaultAdminPasswordHashes[userId];
+      if (passwordHash != expectedHash) {
+        developer.log('❌ Invalid password for: $userId');
         return false;
       }
 
       // Create higher-access user
       _currentUser = User.higherAccess(userId, userId);
       await _saveCurrentUser(_currentUser!);
-
+      
+      developer.log('✅ Admin login successful: $userId');
       return true;
     } catch (e) {
-      developer.log('Login error: $e');
+      developer.log('❌ Login error: $e');
       return false;
     }
   }

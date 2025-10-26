@@ -5,6 +5,7 @@ import 'package:mesh_app/services/storage/auth_service.dart';
 import 'package:mesh_app/services/message_controller.dart';
 import 'package:mesh_app/services/bluetooth/bluetooth_service.dart';
 import 'package:mesh_app/services/connectivity/connectivity_service.dart';
+import 'package:mesh_app/services/external_platforms_service.dart';
 
 class AppStateProvider extends ChangeNotifier {
   static final AppStateProvider _instance = AppStateProvider._internal();
@@ -16,6 +17,7 @@ class AppStateProvider extends ChangeNotifier {
   final MessageController _messageController = MessageController();
   final BluetoothService _bluetoothService = BluetoothService();
   final ConnectivityService _connectivityService = ConnectivityService();
+  final ExternalPlatformsService _externalPlatformsService = ExternalPlatformsService();
 
   // App State
   bool _isInitialized = false;
@@ -46,6 +48,7 @@ class AppStateProvider extends ChangeNotifier {
       // Initialize all services
       await _authService.initialize();
       await _connectivityService.initialize();
+      await _externalPlatformsService.initialize();
       await _messageController.initialize();
 
       // Initialize Bluetooth
@@ -163,3 +166,4 @@ class AppStateProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+

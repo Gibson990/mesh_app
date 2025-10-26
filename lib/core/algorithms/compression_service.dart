@@ -93,5 +93,16 @@ class CompressionService {
     final jsonString = decompressText(compressedData);
     return jsonDecode(jsonString);
   }
+
+  // Decompress bytes (alias for decompressText but returns bytes)
+  static Uint8List decompressBytes(Uint8List compressedData) {
+    try {
+      final decompressed = GZipDecoder().decodeBytes(compressedData);
+      return Uint8List.fromList(decompressed);
+    } catch (e) {
+      developer.log('Bytes decompression error: $e');
+      return compressedData;
+    }
+  }
 }
 

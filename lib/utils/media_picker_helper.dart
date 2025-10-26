@@ -56,23 +56,31 @@ class MediaPickerHelper {
   // Compress image to max 1MB
   static Future<File> _compressImage(File imageFile) async {
     try {
+      developer.log('📸 [MediaPicker] Starting image compression...');
+      
       final bytes = await imageFile.readAsBytes();
       final fileSize = bytes.length;
+      
+      developer.log('📸 [MediaPicker] Original size: ${fileSize / 1024}KB');
 
       // If already under 1MB, return as is
       if (fileSize <= 1024 * 1024) {
+        developer.log('📸 [MediaPicker] Image already small enough, skipping compression');
         return imageFile;
       }
 
-      // Compress image
+      // Compress image (with timeout to prevent ANR)
       int quality = 75;
       Uint8List compressed =
           CompressionService.compressImage(bytes, quality: quality);
 
-      // Keep reducing quality until under 1MB
-      while (compressed.length > 1024 * 1024 && quality > 10) {
+      // Keep reducing quality until under 1MB (max 5 iterations to prevent ANR)
+      int iterations = 0;
+      while (compressed.length > 1024 * 1024 && quality > 10 && iterations < 5) {
         quality -= 10;
         compressed = CompressionService.compressImage(bytes, quality: quality);
+        iterations++;
+        developer.log('📸 [MediaPicker] Compression iteration $iterations, quality: $quality');
       }
 
       // Write compressed image to new file
@@ -83,10 +91,11 @@ class MediaPickerHelper {
       await compressedFile.writeAsBytes(compressed);
 
       developer.log(
-          'Image compressed from ${fileSize / 1024}KB to ${compressed.length / 1024}KB');
+          '✅ [MediaPicker] Image compressed from ${fileSize / 1024}KB to ${compressed.length / 1024}KB');
       return compressedFile;
     } catch (e) {
-      developer.log('Error compressing image: $e');
+      developer.log('❌ [MediaPicker] Error compressing image: $e');
+      // Return original file if compression fails (prevents crash)
       return imageFile;
     }
   }
@@ -130,31 +139,43 @@ class MediaPickerHelper {
   // Compress video to max 5MB
   static Future<File?> _compressVideo(File videoFile) async {
     try {
+      developer.log('🎥 [MediaPicker] Starting video compression...');
+      
       final fileSize = await videoFile.length();
+      developer.log('🎥 [MediaPicker] Original size: ${fileSize / (1024 * 1024)}MB');
 
       // If already under 5MB, return as is
       if (fileSize <= 5 * 1024 * 1024) {
+        developer.log('🎥 [MediaPicker] Video already small enough, skipping compression');
         return videoFile;
       }
 
-      developer.log('Compressing video from ${fileSize / (1024 * 1024)}MB...');
+      developer.log('🎥 [MediaPicker] Compressing video (this may take a moment)...');
 
+      // Add timeout to prevent ANR (max 30 seconds)
       final info = await VideoCompress.compressVideo(
         videoFile.path,
         quality: VideoQuality.MediumQuality,
         deleteOrigin: false,
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          developer.log('⚠️ [MediaPicker] Video compression timeout, using original');
+          return null;
+        },
       );
 
       if (info != null && info.file != null) {
         final compressedSize = await info.file!.length();
-        developer
-            .log('Video compressed to ${compressedSize / (1024 * 1024)}MB');
+        developer.log('✅ [MediaPicker] Video compressed to ${compressedSize / (1024 * 1024)}MB');
         return info.file;
       }
 
+      developer.log('⚠️ [MediaPicker] Compression failed, using original video');
       return videoFile;
     } catch (e) {
-      developer.log('Error compressing video: $e');
+      developer.log('❌ [MediaPicker] Error compressing video: $e');
+      // Return original file if compression fails (prevents crash)
       return videoFile;
     }
   }

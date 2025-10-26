@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as path;
@@ -14,6 +15,7 @@ import 'package:mesh_app/core/models/user.dart';
 import 'package:mesh_app/presentation/common_widgets/message_card.dart';
 import 'package:mesh_app/presentation/common_widgets/voice_note_recorder.dart';
 import 'package:mesh_app/presentation/theme/app_theme.dart';
+import 'package:mesh_app/services/app_state_provider.dart';
 import 'package:mesh_app/services/message_controller.dart';
 import 'package:mesh_app/services/storage/auth_service.dart';
 import 'package:mesh_app/utils/media_picker_helper.dart';
@@ -282,12 +284,17 @@ class _ThreadsTabScreenState extends State<ThreadsTabScreen> {
             color: AppTheme.accentColor,
           ),
           const SizedBox(width: AppTheme.spacingS),
-          Text(
-            'Connected • 12 peers',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.w600,
-                ),
+          Consumer<AppStateProvider>(
+            builder: (context, appState, _) {
+              final peerCount = appState.peerCount;
+              return Text(
+                'Connected • $peerCount ${peerCount == 1 ? 'peer' : 'peers'}',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppTheme.accentColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+              );
+            },
           ),
         ],
       ),
@@ -320,23 +327,6 @@ class _ThreadsTabScreenState extends State<ThreadsTabScreen> {
                   color: AppTheme.textHint,
                 ),
           ),
-          const SizedBox(height: 16),
-          // Debug info
-          if (_messages.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(AppTheme.spacingS),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppTheme.radiusS),
-              ),
-              child: Text(
-                'Debug: _messages.length = ${_messages.length}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textHint,
-                      fontFamily: 'monospace',
-                    ),
-              ),
-            ),
         ],
       ),
     );
@@ -733,9 +723,43 @@ class _ThreadsTabScreenState extends State<ThreadsTabScreen> {
 
   Future<void> _shareMessageAsScreenshot(Message message) async {
     try {
-      developer.log('📤 [ThreadsTab] Creating screenshot for message: ${message.id}');
+      developer.log('📤 [ThreadsTab] Share tapped for: ${message.type}');
       
-      // Create a screenshot controller
+      // For MEDIA (image, video, audio) - share the actual file
+      if (message.type == MessageType.image || 
+          message.type == MessageType.video || 
+          message.type == MessageType.audio) {
+        
+        // Parse file path (might have caption)
+        final parts = message.content.split('|||');
+        final filePath = parts[0];
+        final caption = parts.length > 1 ? parts[1] : '';
+        
+        developer.log('📤 [ThreadsTab] Sharing MEDIA file: $filePath');
+        
+        if (File(filePath).existsSync()) {
+          await Share.shareXFiles(
+            [XFile(filePath)],
+            text: caption.isNotEmpty ? caption : 'Shared from Mesh App',
+          );
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Media shared successfully!'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } else {
+          throw Exception('Media file not found');
+        }
+        return;
+      }
+      
+      // For TEXT/VOICE - take screenshot of the message widget
+      developer.log('📤 [ThreadsTab] Creating screenshot for text message');
+      
       final screenshotController = ScreenshotController();
       
       // Create a widget to screenshot

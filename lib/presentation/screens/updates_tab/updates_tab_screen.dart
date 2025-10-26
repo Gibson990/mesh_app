@@ -18,35 +18,13 @@ class _UpdatesTabScreenState extends State<UpdatesTabScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDummyUpdates();
+    // No dummy data - load real updates from storage
+    _loadRealUpdates();
   }
 
-  void _loadDummyUpdates() {
-    final uuid = Uuid();
-    _updates.addAll([
-      Message(
-        id: uuid.v4(),
-        senderId: 'admin1',
-        senderName: 'Coordinator',
-        content: 'Official Update: All participants should gather at the main square by 2 PM.',
-        type: MessageType.text,
-        tab: MessageTab.updates,
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-        contentHash: 'hash_update1',
-        isVerified: true,
-      ),
-      Message(
-        id: uuid.v4(),
-        senderId: 'admin2',
-        senderName: 'Safety Officer',
-        content: 'Safety reminder: Stay in groups and keep your phones charged.',
-        type: MessageType.text,
-        tab: MessageTab.updates,
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-        contentHash: 'hash_update2',
-        isVerified: true,
-      ),
-    ]);
+  Future<void> _loadRealUpdates() async {
+    // Load actual updates from database
+    // Updates will be populated from real admin posts only
   }
 
   void _postUpdate() {

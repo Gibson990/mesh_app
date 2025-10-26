@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mesh_app/presentation/screens/home/home_screen.dart';
+import 'package:mesh_app/presentation/screens/splash/splash_screen.dart';
 import 'package:mesh_app/presentation/theme/app_theme.dart';
 import 'package:mesh_app/services/app_state_provider.dart';
+import 'package:mesh_app/core/algorithms/encryption_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize encryption with secure keys
+  await EncryptionService.initialize();
 
   // Set preferred orientations - PORTRAIT ONLY
   await SystemChrome.setPreferredOrientations([
@@ -35,8 +40,15 @@ void main() async {
   );
 }
 
-class MeshApp extends StatelessWidget {
+class MeshApp extends StatefulWidget {
   const MeshApp({super.key});
+
+  @override
+  State<MeshApp> createState() => _MeshAppState();
+}
+
+class _MeshAppState extends State<MeshApp> {
+  bool _showSplash = true;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +56,15 @@ class MeshApp extends StatelessWidget {
       title: 'Mesh',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const HomeScreen(),
+      home: _showSplash
+          ? SplashScreen(
+              onInitializationComplete: () {
+                setState(() {
+                  _showSplash = false;
+                });
+              },
+            )
+          : const HomeScreen(),
     );
   }
 }

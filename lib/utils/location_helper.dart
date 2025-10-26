@@ -95,3 +95,4 @@ class LocationHelper {
         permission == LocationPermission.always;
   }
 }
+

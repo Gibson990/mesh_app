@@ -8,6 +8,7 @@ import 'package:mesh_app/services/connectivity/connectivity_service.dart';
 import 'package:mesh_app/services/notifications/notification_service.dart';
 import 'package:mesh_app/services/storage/auth_service.dart';
 import 'package:mesh_app/services/storage/storage_service.dart';
+import 'package:mesh_app/services/external_platforms_service.dart';
 import 'package:uuid/uuid.dart';
 
 class MessageController {
@@ -20,6 +21,7 @@ class MessageController {
   final StorageService _storageService = StorageService();
   final NotificationService _notificationService = NotificationService();
   final AuthService _authService = AuthService();
+  final ExternalPlatformsService _externalPlatformsService = ExternalPlatformsService();
 
   final StreamController<List<Message>> _messagesController =
       StreamController<List<Message>>.broadcast();
@@ -43,6 +45,7 @@ class MessageController {
       await _authService.initialize();
       await _connectivityService.initialize();
       await _notificationService.initialize();
+      await _externalPlatformsService.initialize();
 
       // Initialize Bluetooth
       final bluetoothReady = await _bluetoothService.initialize();
@@ -186,7 +189,15 @@ class MessageController {
       await _bluetoothService.sendMessage(message);
       developer.log('📶 Sent via Bluetooth');
 
-      // If online, relay to external platforms (optional)
+      // Auto-upload MEDIA to Discord/Telegram
+      if (message.type == MessageType.image || 
+          message.type == MessageType.video || 
+          message.type == MessageType.audio) {
+        developer.log('📤 [MessageController] Queuing media for external upload');
+        await _externalPlatformsService.queueMediaForUpload(message);
+      }
+
+      // If online, relay to external platforms (optional - for text messages)
       if (_connectivityService.isOnline) {
         developer.log('🌐 Online - relaying to external platforms');
         await _relayToExternalPlatforms(message);

@@ -26,8 +26,9 @@ class StorageService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Incremented for schema update
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -47,7 +48,9 @@ class StorageService {
         isVerified INTEGER NOT NULL,
         contentHash TEXT NOT NULL,
         hopCount INTEGER NOT NULL,
-        location TEXT
+        location TEXT,
+        uploadedToTelegram INTEGER DEFAULT 0,
+        telegramUploadTime INTEGER
       )
     ''');
 
@@ -67,6 +70,20 @@ class StorageService {
         .execute('CREATE INDEX idx_messages_timestamp ON messages(timestamp)');
     await db.execute('CREATE INDEX idx_messages_tab ON messages(tab)');
     await db.execute('CREATE INDEX idx_messages_hash ON messages(contentHash)');
+  }
+
+  // Upgrade database schema
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add new columns for Telegram upload tracking
+      await db.execute('''
+        ALTER TABLE messages ADD COLUMN uploadedToTelegram INTEGER DEFAULT 0
+      ''');
+      await db.execute('''
+        ALTER TABLE messages ADD COLUMN telegramUploadTime INTEGER
+      ''');
+      developer.log('✅ Database upgraded to version 2 - Added Telegram tracking columns');
+    }
   }
 
   // Save message

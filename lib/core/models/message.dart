@@ -26,6 +26,8 @@ class Message {
   final String contentHash; // SHA-256 hash for duplicate detection
   final int hopCount; // For mesh relay tracking
   final String? location; // City name where message was sent from
+  final bool uploadedToTelegram; // Track if media uploaded to Telegram
+  final DateTime? telegramUploadTime; // When media was uploaded
 
   Message({
     required this.id,
@@ -40,6 +42,8 @@ class Message {
     required this.contentHash,
     this.hopCount = 0,
     this.location,
+    this.uploadedToTelegram = false,
+    this.telegramUploadTime,
   });
 
   // Convert to JSON for transmission
@@ -57,6 +61,8 @@ class Message {
       'contentHash': contentHash,
       'hopCount': hopCount,
       'location': location,
+      'uploadedToTelegram': uploadedToTelegram,
+      'telegramUploadTime': telegramUploadTime?.toIso8601String(),
     };
   }
 
@@ -79,6 +85,10 @@ class Message {
       contentHash: json['contentHash'],
       hopCount: json['hopCount'] ?? 0,
       location: json['location'],
+      uploadedToTelegram: json['uploadedToTelegram'] ?? false,
+      telegramUploadTime: json['telegramUploadTime'] != null 
+          ? DateTime.parse(json['telegramUploadTime']) 
+          : null,
     );
   }
 
@@ -97,6 +107,8 @@ class Message {
       'contentHash': contentHash,
       'hopCount': hopCount,
       'location': location,
+      'uploadedToTelegram': uploadedToTelegram ? 1 : 0,
+      'telegramUploadTime': telegramUploadTime?.millisecondsSinceEpoch,
     };
   }
 
@@ -113,8 +125,12 @@ class Message {
       parentId: map['parentId'],
       isVerified: map['isVerified'] == 1,
       contentHash: map['contentHash'],
-      hopCount: map['hopCount'],
+      hopCount: map['hopCount'] ?? 0,
       location: map['location'],
+      uploadedToTelegram: (map['uploadedToTelegram'] ?? 0) == 1,
+      telegramUploadTime: map['telegramUploadTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['telegramUploadTime'])
+          : null,
     );
   }
 
@@ -133,8 +149,35 @@ class Message {
       contentHash: contentHash,
       hopCount: hopCount + 1,
       location: location,
+      uploadedToTelegram: uploadedToTelegram,
+      telegramUploadTime: telegramUploadTime,
     );
   }
+
+  // Create a copy with Telegram upload status
+  Message markAsUploadedToTelegram() {
+    return Message(
+      id: id,
+      senderId: senderId,
+      senderName: senderName,
+      content: content,
+      type: type,
+      tab: tab,
+      timestamp: timestamp,
+      parentId: parentId,
+      isVerified: isVerified,
+      contentHash: contentHash,
+      hopCount: hopCount,
+      location: location,
+      uploadedToTelegram: true,
+      telegramUploadTime: DateTime.now(),
+    );
+  }
+
+  // Check if this is a media message
+  bool get isMedia => type == MessageType.image || 
+                      type == MessageType.video || 
+                      type == MessageType.audio;
 
   String get formattedTime {
     final now = DateTime.now();

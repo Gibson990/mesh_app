@@ -1,0 +1,61 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6C63FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4834DF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="meshGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D9FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B8D4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGradient)"/>
+  
+  <!-- Mesh network nodes (hexagonal pattern) -->
+  <!-- Center node (largest) -->
+  <circle cx="256" cy="256" r="45" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="256" cy="256" r="35" fill="url(#meshGradient)"/>
+  
+  <!-- Ring 1 nodes -->
+  <circle cx="256" cy="156" r="28" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="256" cy="156" r="20" fill="url(#meshGradient)"/>
+  
+  <circle cx="342" cy="206" r="28" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="342" cy="206" r="20" fill="url(#meshGradient)"/>
+  
+  <circle cx="342" cy="306" r="28" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="342" cy="306" r="20" fill="url(#meshGradient)"/>
+  
+  <circle cx="256" cy="356" r="28" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="256" cy="356" r="20" fill="url(#meshGradient)"/>
+  
+  <circle cx="170" cy="306" r="28" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="170" cy="306" r="20" fill="url(#meshGradient)"/>
+  
+  <circle cx="170" cy="206" r="28" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="170" cy="206" r="20" fill="url(#meshGradient)"/>
+  
+  <!-- Connection lines (mesh network) -->
+  <line x1="256" y1="256" x2="256" y2="156" stroke="#00D9FF" stroke-width="4" opacity="0.6"/>
+  <line x1="256" y1="256" x2="342" y2="206" stroke="#00D9FF" stroke-width="4" opacity="0.6"/>
+  <line x1="256" y1="256" x2="342" y2="306" stroke="#00D9FF" stroke-width="4" opacity="0.6"/>
+  <line x1="256" y1="256" x2="256" y2="356" stroke="#00D9FF" stroke-width="4" opacity="0.6"/>
+  <line x1="256" y1="256" x2="170" y2="306" stroke="#00D9FF" stroke-width="4" opacity="0.6"/>
+  <line x1="256" y1="256" x2="170" y2="206" stroke="#00D9FF" stroke-width="4" opacity="0.6"/>
+  
+  <!-- Outer ring connections -->
+  <line x1="256" y1="156" x2="342" y2="206" stroke="#00D9FF" stroke-width="3" opacity="0.4"/>
+  <line x1="342" y1="206" x2="342" y2="306" stroke="#00D9FF" stroke-width="3" opacity="0.4"/>
+  <line x1="342" y1="306" x2="256" y2="356" stroke="#00D9FF" stroke-width="3" opacity="0.4"/>
+  <line x1="256" y1="356" x2="170" y2="306" stroke="#00D9FF" stroke-width="3" opacity="0.4"/>
+  <line x1="170" y1="306" x2="170" y2="206" stroke="#00D9FF" stroke-width="3" opacity="0.4"/>
+  <line x1="170" y1="206" x2="256" y2="156" stroke="#00D9FF" stroke-width="3" opacity="0.4"/>
+  
+  <!-- Signal waves from center (animated effect suggestion) -->
+  <circle cx="256" cy="256" r="60" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.3"/>
+  <circle cx="256" cy="256" r="80" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.2"/>
+  <circle cx="256" cy="256" r="100" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.1"/>
+</svg>

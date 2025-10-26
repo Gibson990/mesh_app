@@ -60,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     BlurModalHelper.showFullScreenBlurModal(
       context: context,
+      isDismissible: false, // Prevent accidental dismissal
       child: StatefulBuilder(
         builder: (context, setModalState) {
           return Container(
@@ -225,15 +226,12 @@ class _HomeScreenState extends State<HomeScreen>
                                 final userId = userIdController.text.trim();
                                 final password = passwordController.text.trim();
 
-                                // Verify credentials
-                                if (AppConstants.higherAccessCredentials
-                                        .containsKey(userId) &&
-                                    AppConstants
-                                            .higherAccessCredentials[userId] ==
-                                        password) {
+                                // Verify credentials exist
+                                if (AppConstants.defaultAdminPasswordHashes
+                                        .containsKey(userId)) {
                                   Navigator.pop(context);
                                   
-                                  // Use state provider for login
+                                  // Use state provider for login (handles password hashing)
                                   final appState = Provider.of<AppStateProvider>(context, listen: false);
                                   final success = await appState.loginHigherAccess(userId, password);
                                   

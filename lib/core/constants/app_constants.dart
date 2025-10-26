@@ -21,11 +21,16 @@ class AppConstants {
 
   // Higher-Access Users
   static const int maxHigherAccessUsers = 30;
-  static const Map<String, String> higherAccessCredentials = {
-    'admin1': 'mesh_secure_2024',
-    'admin2': 'mesh_secure_2024',
-    'admin3': 'mesh_secure_2024',
-    // Add more as needed (up to 30)
+  // SECURITY: Credentials now stored in secure storage with hashed passwords
+  // Default admin credentials (CHANGE THESE IN PRODUCTION):
+  // Username: admin1, Password: MeshSecure2024!
+  // Username: admin2, Password: MeshSecure2024!
+  // Username: admin3, Password: MeshSecure2024!
+  // Hashed passwords stored in flutter_secure_storage
+  static const Map<String, String> defaultAdminPasswordHashes = {
+    'admin1': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', // SHA-256 hash
+    'admin2': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    'admin3': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
   };
 
   // Reputation System

@@ -21,6 +21,11 @@ class ConnectivityService {
     return _connectionModeController!.stream;
   }
 
+  // Expose raw connectivity stream for external platforms service
+  Stream<ConnectivityResult> get connectivityStream {
+    return _connectivity.onConnectivityChanged;
+  }
+
   ConnectionMode get currentMode => _currentMode;
   bool get isOnline => _currentMode == ConnectionMode.online;
   bool get isOffline => _currentMode == ConnectionMode.offline;

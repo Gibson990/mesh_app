@@ -1,0 +1,103 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="splashBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6C63FF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#5B52E8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4834DF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D9FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B8D4;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowEffect" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1080" height="1920" fill="url(#splashBg)"/>
+  
+  <!-- Glow effect behind icon -->
+  <circle cx="540" cy="800" r="300" fill="url(#glowEffect)"/>
+  
+  <!-- Mesh network icon (centered, larger) -->
+  <g transform="translate(340, 600)">
+    <!-- Center node (largest) -->
+    <circle cx="200" cy="200" r="50" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="200" cy="200" r="38" fill="url(#iconGradient)"/>
+    
+    <!-- Ring 1 nodes -->
+    <circle cx="200" cy="80" r="32" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="200" cy="80" r="24" fill="url(#iconGradient)"/>
+    
+    <circle cx="304" cy="140" r="32" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="304" cy="140" r="24" fill="url(#iconGradient)"/>
+    
+    <circle cx="304" cy="260" r="32" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="304" cy="260" r="24" fill="url(#iconGradient)"/>
+    
+    <circle cx="200" cy="320" r="32" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="200" cy="320" r="24" fill="url(#iconGradient)"/>
+    
+    <circle cx="96" cy="260" r="32" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="96" cy="260" r="24" fill="url(#iconGradient)"/>
+    
+    <circle cx="96" cy="140" r="32" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="96" cy="140" r="24" fill="url(#iconGradient)"/>
+    
+    <!-- Connection lines -->
+    <line x1="200" y1="200" x2="200" y2="80" stroke="#00D9FF" stroke-width="5" opacity="0.7"/>
+    <line x1="200" y1="200" x2="304" y2="140" stroke="#00D9FF" stroke-width="5" opacity="0.7"/>
+    <line x1="200" y1="200" x2="304" y2="260" stroke="#00D9FF" stroke-width="5" opacity="0.7"/>
+    <line x1="200" y1="200" x2="200" y2="320" stroke="#00D9FF" stroke-width="5" opacity="0.7"/>
+    <line x1="200" y1="200" x2="96" y2="260" stroke="#00D9FF" stroke-width="5" opacity="0.7"/>
+    <line x1="200" y1="200" x2="96" y2="140" stroke="#00D9FF" stroke-width="5" opacity="0.7"/>
+    
+    <!-- Outer ring connections -->
+    <line x1="200" y1="80" x2="304" y2="140" stroke="#00D9FF" stroke-width="4" opacity="0.5"/>
+    <line x1="304" y1="140" x2="304" y2="260" stroke="#00D9FF" stroke-width="4" opacity="0.5"/>
+    <line x1="304" y1="260" x2="200" y2="320" stroke="#00D9FF" stroke-width="4" opacity="0.5"/>
+    <line x1="200" y1="320" x2="96" y2="260" stroke="#00D9FF" stroke-width="4" opacity="0.5"/>
+    <line x1="96" y1="260" x2="96" y2="140" stroke="#00D9FF" stroke-width="4" opacity="0.5"/>
+    <line x1="96" y1="140" x2="200" y2="80" stroke="#00D9FF" stroke-width="4" opacity="0.5"/>
+    
+    <!-- Signal waves -->
+    <circle cx="200" cy="200" r="70" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.4"/>
+    <circle cx="200" cy="200" r="95" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.3"/>
+    <circle cx="200" cy="200" r="120" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.2"/>
+  </g>
+  
+  <!-- App name -->
+  <text x="540" y="1100" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#FFFFFF" text-anchor="middle">
+    MESH
+  </text>
+  
+  <!-- Tagline -->
+  <text x="540" y="1160" font-family="Arial, sans-serif" font-size="32" fill="#FFFFFF" text-anchor="middle" opacity="0.8">
+    Connect Without Limits
+  </text>
+  
+  <!-- Decorative elements -->
+  <!-- Small dots pattern -->
+  <circle cx="150" cy="400" r="4" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="200" cy="450" r="3" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="120" cy="500" r="5" fill="#FFFFFF" opacity="0.3"/>
+  
+  <circle cx="930" cy="400" r="4" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="880" cy="450" r="3" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="960" cy="500" r="5" fill="#FFFFFF" opacity="0.3"/>
+  
+  <circle cx="150" cy="1200" r="4" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="200" cy="1250" r="3" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="120" cy="1300" r="5" fill="#FFFFFF" opacity="0.3"/>
+  
+  <circle cx="930" cy="1200" r="4" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="880" cy="1250" r="3" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="960" cy="1300" r="5" fill="#FFFFFF" opacity="0.3"/>
+  
+  <!-- Bottom wave decoration -->
+  <path d="M 0 1700 Q 270 1650 540 1700 T 1080 1700 L 1080 1920 L 0 1920 Z" fill="#FFFFFF" opacity="0.05"/>
+  <path d="M 0 1750 Q 270 1700 540 1750 T 1080 1750 L 1080 1920 L 0 1920 Z" fill="#FFFFFF" opacity="0.03"/>
+</svg>
