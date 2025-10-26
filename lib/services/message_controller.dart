@@ -29,6 +29,11 @@ class MessageController {
   List<Message> _allMessages = [];
   bool _isInitialized = false;
 
+  // Spam prevention
+  final List<DateTime> _recentSendTimes = [];
+  static const int _maxMessagesPerMinute = 10;
+  static const Duration _cooldownPeriod = Duration(seconds: 3);
+
   // Initialize message controller
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -38,7 +43,7 @@ class MessageController {
       await _authService.initialize();
       await _connectivityService.initialize();
       await _notificationService.initialize();
-      
+
       // Initialize Bluetooth
       final bluetoothReady = await _bluetoothService.initialize();
       if (bluetoothReady) {
@@ -53,7 +58,8 @@ class MessageController {
       _bluetoothService.messageStream.listen(_handleIncomingMessage);
 
       // Listen to connectivity changes
-      _connectivityService.connectionModeStream.listen(_handleConnectivityChange);
+      _connectivityService.connectionModeStream
+          .listen(_handleConnectivityChange);
 
       _isInitialized = true;
     } catch (e) {
@@ -121,27 +127,77 @@ class MessageController {
     }
   }
 
+  // Check if user can send (spam prevention)
+  bool _canSendMessage() {
+    final now = DateTime.now();
+
+    // Remove timestamps older than 1 minute
+    _recentSendTimes.removeWhere(
+      (time) => now.difference(time) > const Duration(minutes: 1),
+    );
+
+    // Check rate limit
+    if (_recentSendTimes.length >= _maxMessagesPerMinute) {
+      developer.log(
+          'Rate limit exceeded: ${_recentSendTimes.length} messages in last minute');
+      return false;
+    }
+
+    // Check cooldown
+    if (_recentSendTimes.isNotEmpty) {
+      final lastSendTime = _recentSendTimes.last;
+      if (now.difference(lastSendTime) < _cooldownPeriod) {
+        developer.log(
+            'Cooldown active: ${_cooldownPeriod.inSeconds}s between messages');
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   // Internal send message method
   Future<bool> _sendMessage(Message message) async {
     try {
+      developer.log('📤 Sending message: ${message.id} - ${message.type} - ${message.tab}');
+      
+      // Check spam prevention
+      if (!_canSendMessage()) {
+        developer.log('❌ Message blocked by spam prevention');
+        return false;
+      }
+
+      // Record send time
+      _recentSendTimes.add(DateTime.now());
+
       // Save to local storage
-      await _storageService.saveMessage(message);
+      final saved = await _storageService.saveMessage(message);
+      developer.log('💾 Message saved to storage: $saved');
 
       // Add to local list
       _allMessages.add(message);
-      _messagesController.add(_allMessages);
+      developer.log('📝 Added to local list. Total messages: ${_allMessages.length}');
+      
+      // Emit to stream
+      _messagesController.add(List.from(_allMessages));
+      developer.log('📡 Emitted to stream. Listeners: ${_messagesController.hasListener}');
 
       // Send via Bluetooth
       await _bluetoothService.sendMessage(message);
+      developer.log('📶 Sent via Bluetooth');
 
       // If online, relay to external platforms (optional)
       if (_connectivityService.isOnline) {
+        developer.log('🌐 Online - relaying to external platforms');
         await _relayToExternalPlatforms(message);
+      } else {
+        developer.log('📴 Offline - skipping external relay');
       }
 
+      developer.log('✅ Message sent successfully');
       return true;
     } catch (e) {
-      developer.log('Send message error: $e');
+      developer.log('❌ Send message error: $e');
       return false;
     }
   }
@@ -191,10 +247,21 @@ class MessageController {
 
   // Relay message to external platforms (Telegram/Discord)
   Future<void> _relayToExternalPlatforms(Message message) async {
-    // This is a placeholder for external relay functionality
-    // In a real implementation, you would use HTTP requests to relay messages
-    // to Telegram bots or Discord webhooks
-    developer.log('Relaying message to external platforms: ${message.content}');
+    // TODO: Implement Telegram relay
+    // 1. Add 'http' package to pubspec.yaml
+    // 2. Configure bot token and channel ID in app_constants.dart
+    // 3. Use Telegram Bot API to send messages:
+    //    POST https://api.telegram.org/bot{token}/sendMessage
+    //    Body: {"chat_id": "{channelId}", "text": "{message}"}
+
+    // TODO: Implement Discord relay
+    // 1. Configure webhook URL in app_constants.dart
+    // 2. Use Discord Webhook API to send messages:
+    //    POST {webhookUrl}
+    //    Body: {"content": "{message}"}
+
+    developer.log('Relay placeholder - Message: ${message.content}');
+    developer.log('Configure tokens in lib/core/constants/app_constants.dart');
   }
 
   // Get messages by tab
@@ -234,4 +301,3 @@ class MessageController {
     _connectivityService.dispose();
   }
 }
-

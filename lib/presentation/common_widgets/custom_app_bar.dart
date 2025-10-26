@@ -7,6 +7,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TabController tabController;
   final bool isHigherAccess;
   final VoidCallback? onSearchPressed;
+  final VoidCallback? onPeersPressed;
 
   const CustomAppBar({
     super.key,
@@ -15,6 +16,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.tabController,
     required this.isHigherAccess,
     this.onSearchPressed,
+    this.onPeersPressed,
   });
 
   @override
@@ -45,6 +47,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     style: Theme.of(context).appBarTheme.titleTextStyle,
                   ),
                   const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.bluetooth),
+                    tooltip: 'Bluetooth Peers',
+                    onPressed: onPeersPressed ?? () {},
+                    color: AppTheme.accentColor,
+                  ),
                   IconButton(
                     icon: const Icon(Icons.search),
                     tooltip: 'Search',

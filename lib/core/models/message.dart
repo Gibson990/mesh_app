@@ -25,6 +25,7 @@ class Message {
   final bool isVerified; // For higher-access user posts
   final String contentHash; // SHA-256 hash for duplicate detection
   final int hopCount; // For mesh relay tracking
+  final String? location; // City name where message was sent from
 
   Message({
     required this.id,
@@ -38,6 +39,7 @@ class Message {
     this.isVerified = false,
     required this.contentHash,
     this.hopCount = 0,
+    this.location,
   });
 
   // Convert to JSON for transmission
@@ -54,6 +56,7 @@ class Message {
       'isVerified': isVerified,
       'contentHash': contentHash,
       'hopCount': hopCount,
+      'location': location,
     };
   }
 
@@ -75,6 +78,7 @@ class Message {
       isVerified: json['isVerified'] ?? false,
       contentHash: json['contentHash'],
       hopCount: json['hopCount'] ?? 0,
+      location: json['location'],
     );
   }
 
@@ -92,6 +96,7 @@ class Message {
       'isVerified': isVerified ? 1 : 0,
       'contentHash': contentHash,
       'hopCount': hopCount,
+      'location': location,
     };
   }
 
@@ -109,6 +114,7 @@ class Message {
       isVerified: map['isVerified'] == 1,
       contentHash: map['contentHash'],
       hopCount: map['hopCount'],
+      location: map['location'],
     );
   }
 
@@ -126,6 +132,7 @@ class Message {
       isVerified: isVerified,
       contentHash: contentHash,
       hopCount: hopCount + 1,
+      location: location,
     );
   }
 
@@ -144,4 +151,3 @@ class Message {
     }
   }
 }
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mesh_app/presentation/theme/app_theme.dart';
+import 'package:mesh_app/utils/share_helper.dart';
 
 class MediaViewerScreen extends StatefulWidget {
   final List<Map<String, dynamic>> mediaItems;
@@ -265,7 +266,7 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
             IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(
-                Icons.close,
+                Icons.cancel,
                 color: Colors.white,
                 size: 24,
               ),
@@ -284,7 +285,12 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
             // Share button
             IconButton(
               onPressed: () {
-                // TODO: Implement share functionality
+                final currentItem = widget.mediaItems[_currentIndex];
+                ShareHelper.shareMedia(
+                  type: _getMediaTypeLabel(currentItem['type']),
+                  senderName: widget.senderName ?? 'Anonymous',
+                  caption: widget.caption,
+                );
               },
               icon: const Icon(
                 Icons.share,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mesh_app/core/constants/app_constants.dart';
 import 'package:mesh_app/presentation/common_widgets/custom_app_bar.dart';
 import 'package:mesh_app/presentation/common_widgets/blur_modal.dart';
@@ -6,6 +7,8 @@ import 'package:mesh_app/presentation/screens/media_tab/media_tab_screen.dart';
 import 'package:mesh_app/presentation/screens/threads_tab/threads_tab_screen.dart';
 import 'package:mesh_app/presentation/screens/updates_tab/updates_tab_screen.dart';
 import 'package:mesh_app/presentation/theme/app_theme.dart';
+import 'package:mesh_app/services/app_state_provider.dart';
+import 'package:mesh_app/services/bluetooth/bluetooth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,12 +20,33 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isHigherAccess = false;
+  final BluetoothService _bluetoothService = BluetoothService();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final appState = Provider.of<AppStateProvider>(context, listen: true);
+    
+    // Update tab controller based on access level
+    if (appState.isHigherAccess && _tabController.length == 2) {
+      final oldController = _tabController;
+      _tabController = TabController(length: 3, vsync: this);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        oldController.dispose();
+      });
+    } else if (!appState.isHigherAccess && _tabController.length == 3) {
+      final oldController = _tabController;
+      _tabController = TabController(length: 2, vsync: this);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        oldController.dispose();
+      });
+    }
   }
 
   void _handleLogin() {
@@ -197,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen>
                           Expanded(
                             flex: 2,
                             child: ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 final userId = userIdController.text.trim();
                                 final password = passwordController.text.trim();
 
@@ -207,48 +231,49 @@ class _HomeScreenState extends State<HomeScreen>
                                     AppConstants
                                             .higherAccessCredentials[userId] ==
                                         password) {
-                                  setState(() {
-                                    _isHigherAccess = true;
-                                    _tabController.dispose();
-                                    _tabController =
-                                        TabController(length: 3, vsync: this);
-                                  });
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.verified,
-                                            color: AppTheme.verifiedBadge,
-                                          ),
-                                          const SizedBox(
-                                              width: AppTheme.spacingS),
-                                          const Text(
-                                              'Login successful! You now have verified access.'),
-                                        ],
+                                  
+                                  // Use state provider for login
+                                  final appState = Provider.of<AppStateProvider>(context, listen: false);
+                                  final success = await appState.loginHigherAccess(userId, password);
+                                  
+                                  if (success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.verified,
+                                              color: AppTheme.verifiedBadge,
+                                            ),
+                                            const SizedBox(
+                                                width: AppTheme.spacingS),
+                                            const Text(
+                                                'Login successful! You now have verified access.'),
+                                          ],
+                                        ),
+                                        backgroundColor: AppTheme.accentColor,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              AppTheme.radiusM),
+                                        ),
                                       ),
-                                      backgroundColor: AppTheme.accentColor,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppTheme.radiusM),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text(
+                                            'Invalid credentials. Please try again.'),
+                                        backgroundColor: AppTheme.errorColor,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              AppTheme.radiusM),
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                          'Invalid credentials. Please try again.'),
-                                      backgroundColor: AppTheme.errorColor,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppTheme.radiusM),
-                                      ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -286,17 +311,19 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppStateProvider>(context);
+    
     return Scaffold(
       appBar: CustomAppBar(
         title: AppConstants.appName,
         onLoginPressed: _handleLogin,
         tabController: _tabController,
-        isHigherAccess: _isHigherAccess,
+        isHigherAccess: appState.isHigherAccess,
         onSearchPressed: () {
-          // TODO: Implement search
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Search feature coming soon')),
-          );
+          _showSearchDialog();
+        },
+        onPeersPressed: () {
+          _showPeersDialog();
         },
       ),
       body: TabBarView(
@@ -304,21 +331,257 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           const ThreadsTabScreen(),
           const MediaTabScreen(),
-          if (_isHigherAccess) const UpdatesTabScreen(),
+          if (appState.isHigherAccess) const UpdatesTabScreen(),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showNewMessageOptions();
-        },
-        tooltip: 'New Message',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  void _showPeersDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.bluetooth, color: AppTheme.accentColor),
+                const SizedBox(width: 8),
+                Text(
+                  'Bluetooth Peers',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Discovered devices nearby',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: _bluetoothService.discoveredDevicesStream,
+                builder: (context, snapshot) {
+                  final devices = snapshot.data ?? [];
+                  
+                  if (devices.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.bluetooth_searching,
+                            size: 64,
+                            color: AppTheme.textHint,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No devices found',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Scanning for nearby devices...',
+                            style: TextStyle(
+                              color: AppTheme.textHint,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  
+                  return ListView.builder(
+                    itemCount: devices.length,
+                    itemBuilder: (context, index) {
+                      final device = devices[index];
+                      final rssi = device['rssi'] as int? ?? -100;
+                      final signalStrength = rssi > -70 ? 'Strong' : rssi > -85 ? 'Medium' : 'Weak';
+                      final signalColor = rssi > -70 ? Colors.green : rssi > -85 ? Colors.orange : Colors.red;
+                      
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          leading: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentColor.withAlpha((255 * 0.1).round()),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.devices,
+                              color: AppTheme.accentColor,
+                            ),
+                          ),
+                          title: Text(device['name'] ?? 'Unknown Device'),
+                          subtitle: Text(
+                            device['id'] ?? 'Unknown ID',
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.signal_cellular_alt,
+                                size: 16,
+                                color: signalColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                signalStrength,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: signalColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Connecting to ${device['name'] ?? 'device'}...'),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Scanning for devices...'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Scan Again'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+    );
+  }
+
+  void _showSearchDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Search & Filter',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            // Location filter
+            ListTile(
+              leading: const Icon(Icons.location_on),
+              title: const Text('Filter by Location'),
+              subtitle: const Text('Show messages from specific cities'),
+              onTap: () {
+                Navigator.pop(context);
+                _showLocationFilter();
+              },
+            ),
+            // Coordinator filter
+            ListTile(
+              leading: const Icon(Icons.verified),
+              title: const Text('Coordinator Messages Only'),
+              subtitle: const Text('Show verified announcements'),
+              onTap: () {
+                Navigator.pop(context);
+                _showCoordinatorFilter();
+              },
+            ),
+            // Search text
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search Messages'),
+              subtitle: const Text('Find specific content'),
+              onTap: () {
+                Navigator.pop(context);
+                _showTextSearch();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLocationFilter() {
+    // TODO: Implement location-based filtering
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Location filter coming soon')),
+    );
+  }
+
+  void _showCoordinatorFilter() {
+    // TODO: Implement coordinator-only filtering
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Coordinator filter coming soon')),
+    );
+  }
+
+  void _showTextSearch() {
+    // TODO: Implement text search
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Text search coming soon')),
     );
   }
 
   void _showNewMessageOptions() {
+    final appState = Provider.of<AppStateProvider>(context, listen: false);
+    
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -359,7 +622,7 @@ class _HomeScreenState extends State<HomeScreen>
                 _tabController.animateTo(1);
               },
             ),
-            if (_isHigherAccess)
+            if (appState.isHigherAccess)
               ListTile(
                 leading: Icon(
                   Icons.campaign,

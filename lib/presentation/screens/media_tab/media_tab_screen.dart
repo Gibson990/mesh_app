@@ -1,7 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mesh_app/core/models/message.dart';
 import 'package:mesh_app/presentation/theme/app_theme.dart';
 import 'package:mesh_app/presentation/screens/media_tab/media_viewer_screen.dart';
+import 'package:mesh_app/services/message_controller.dart';
+import 'package:mesh_app/services/storage/auth_service.dart';
+import 'package:mesh_app/utils/media_picker_helper.dart';
+import 'package:mesh_app/utils/share_helper.dart';
 
 class MediaTabScreen extends StatefulWidget {
   const MediaTabScreen({super.key});
@@ -13,11 +19,82 @@ class MediaTabScreen extends StatefulWidget {
 class _MediaTabScreenState extends State<MediaTabScreen> {
   final List<Map<String, dynamic>> _mediaItems = [];
   String _selectedFilter = 'All';
+  final MessageController _messageControllerService = MessageController();
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadDummyMedia();
+    _initializeMessageController();
+  }
+
+  void _initializeMessageController() async {
+    // Set up stream listener first
+    _messageControllerService.messagesStream.listen((messages) {
+      if (mounted) {
+        setState(() {
+          _mediaItems.clear();
+          // Show ALL media types (image, video, audio) regardless of tab
+          final mediaMessages = messages.where((m) => 
+            m.type == MessageType.image || 
+            m.type == MessageType.video || 
+            m.type == MessageType.audio
+          );
+          for (final message in mediaMessages) {
+            // Parse caption if exists (format: "path|||caption")
+            final parts = message.content.split('|||');
+            final filePath = parts[0];
+            final caption = parts.length > 1 ? parts[1] : filePath;
+            
+            _mediaItems.add({
+              'type': message.type.toString().split('.').last,
+              'sender': message.isVerified ? 'Coordinator' : message.senderName,
+              'timestamp': message.timestamp,
+              'caption': caption,
+              'filePath': filePath,
+              'isCoordinator': message.isVerified,
+              'messageId': message.id,
+            });
+          }
+        });
+      }
+    });
+    
+    // Then initialize (this will emit existing messages)
+    await _messageControllerService.initialize();
+    
+    // Force a refresh to show any existing messages - get ALL messages from both tabs
+    final threadsMessages = _messageControllerService.getMessagesByTab(MessageTab.threads);
+    final mediaTabMessages = _messageControllerService.getMessagesByTab(MessageTab.media);
+    final allMessages = [...threadsMessages, ...mediaTabMessages];
+    final mediaMessages = allMessages.where((m) => 
+      m.type == MessageType.image || 
+      m.type == MessageType.video || 
+      m.type == MessageType.audio
+    );
+    
+    if (mounted && mediaMessages.isNotEmpty) {
+      setState(() {
+        _mediaItems.clear();
+        for (final message in mediaMessages) {
+          // Parse caption if exists
+          final parts = message.content.split('|||');
+          final filePath = parts[0];
+          final caption = parts.length > 1 ? parts[1] : filePath;
+          
+          _mediaItems.add({
+            'type': message.type.toString().split('.').last,
+            'sender': message.isVerified ? 'Coordinator' : message.senderName,
+            'timestamp': message.timestamp,
+            'caption': caption,
+            'filePath': filePath,
+            'isCoordinator': message.isVerified,
+            'messageId': message.id,
+          });
+        }
+      });
+    }
   }
 
   void _loadDummyMedia() {
@@ -25,22 +102,23 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
     _mediaItems.addAll([
       {
         'type': 'image',
-        'sender': 'Alice',
+        'sender': 'Anonymous',
         'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
         'caption': 'Check out this view!',
       },
       {
         'type': 'audio',
-        'sender': 'Bob',
+        'sender': 'Anonymous',
         'timestamp': DateTime.now().subtract(const Duration(hours: 5)),
         'duration': '0:12',
       },
       {
         'type': 'video',
-        'sender': 'Charlie',
+        'sender': 'Coordinator',
         'timestamp': DateTime.now().subtract(const Duration(days: 1)),
         'caption': 'Quick update from the field',
         'duration': '0:14',
+        'isCoordinator': true,
       },
     ]);
   }
@@ -193,7 +271,7 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
             children: [
               // Media preview
               Positioned.fill(
-                child: _buildMediaPreview(item['type']),
+                child: _buildMediaPreview(item['type'], item['filePath']),
               ),
               // Gradient overlay
               Positioned.fill(
@@ -262,7 +340,9 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
                         children: [
                           CircleAvatar(
                             radius: 10,
-                            backgroundColor: AppTheme.accentColor,
+                            backgroundColor: item['isCoordinator'] == true
+                                ? AppTheme.verifiedBadge
+                                : AppTheme.accentColor,
                             child: Text(
                               item['sender'][0],
                               style: const TextStyle(
@@ -274,15 +354,30 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
                           ),
                           const SizedBox(width: AppTheme.spacingS),
                           Expanded(
-                            child: Text(
-                              item['sender'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  item['sender'],
+                                  style: TextStyle(
+                                    color: item['isCoordinator'] == true
+                                        ? AppTheme.verifiedBadge
+                                        : Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (item['isCoordinator'] == true) ...[
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.verified,
+                                    size: 12,
+                                    color: AppTheme.verifiedBadge,
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ],
@@ -325,9 +420,27 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
     }
   }
 
-  Widget _buildMediaPreview(String type) {
+  Widget _buildMediaPreview(String type, String? filePath) {
     switch (type) {
       case 'image':
+        if (filePath != null && filePath.isNotEmpty && File(filePath).existsSync()) {
+          return Image.file(
+            File(filePath),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: AppTheme.surfaceVariant,
+                child: const Center(
+                  child: Icon(
+                    Icons.broken_image,
+                    size: 40,
+                    color: AppTheme.textHint,
+                  ),
+                ),
+              );
+            },
+          );
+        }
         return Container(
           color: AppTheme.surfaceVariant,
           child: const Center(
@@ -445,7 +558,7 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
               title: const Text('Take Photo'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Open camera
+                _takePhoto();
               },
             ),
             ListTile(
@@ -453,7 +566,7 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Open gallery
+                _pickImageFromGallery();
               },
             ),
             ListTile(
@@ -461,7 +574,7 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
               title: const Text('Record Audio (15s max)'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Record audio
+                _recordAudio();
               },
             ),
             ListTile(
@@ -469,12 +582,96 @@ class _MediaTabScreenState extends State<MediaTabScreen> {
               title: const Text('Record Video (15s max)'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Record video
+                _recordVideo();
               },
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _takePhoto() async {
+    try {
+      final file = await MediaPickerHelper.takePhoto();
+      if (file != null) {
+        await _sendMediaMessage(file, MessageType.image);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error taking photo: $e')),
+      );
+    }
+  }
+
+  void _pickImageFromGallery() async {
+    try {
+      final file = await MediaPickerHelper.pickImageFromGallery();
+      if (file != null) {
+        await _sendMediaMessage(file, MessageType.image);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking image: $e')),
+      );
+    }
+  }
+
+  void _recordVideo() async {
+    try {
+      final file = await MediaPickerHelper.recordVideo();
+      if (file != null) {
+        await _sendMediaMessage(file, MessageType.video);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error recording video: $e')),
+      );
+    }
+  }
+
+  void _recordAudio() async {
+    try {
+      final file = await MediaPickerHelper.pickVideoFromGallery();
+      if (file != null) {
+        await _sendMediaMessage(file, MessageType.audio);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error recording audio: $e')),
+      );
+    }
+  }
+
+  Future<void> _sendMediaMessage(File file, MessageType type) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final success = await _messageControllerService.sendMediaMessage(
+        content: file.path,
+        type: type,
+        tab: MessageTab.media,
+      );
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Media sent successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to send media')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 }

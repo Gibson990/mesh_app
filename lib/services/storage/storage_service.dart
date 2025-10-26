@@ -46,7 +46,8 @@ class StorageService {
         parentId TEXT,
         isVerified INTEGER NOT NULL,
         contentHash TEXT NOT NULL,
-        hopCount INTEGER NOT NULL
+        hopCount INTEGER NOT NULL,
+        location TEXT
       )
     ''');
 
@@ -62,7 +63,8 @@ class StorageService {
     ''');
 
     // Create indexes for better performance
-    await db.execute('CREATE INDEX idx_messages_timestamp ON messages(timestamp)');
+    await db
+        .execute('CREATE INDEX idx_messages_timestamp ON messages(timestamp)');
     await db.execute('CREATE INDEX idx_messages_tab ON messages(tab)');
     await db.execute('CREATE INDEX idx_messages_hash ON messages(contentHash)');
   }
@@ -71,14 +73,14 @@ class StorageService {
   Future<bool> saveMessage(Message message) async {
     try {
       final db = await database;
-      
+
       // Check for duplicate
       final existing = await db.query(
         'messages',
         where: 'contentHash = ?',
         whereArgs: [message.contentHash],
       );
-      
+
       if (existing.isNotEmpty) {
         developer.log('Duplicate message detected, not saving');
         return false;
@@ -92,7 +94,7 @@ class StorageService {
 
       // Clean up old messages if limit exceeded
       await _cleanupOldMessages();
-      
+
       return true;
     } catch (e) {
       developer.log('Save message error: $e');
@@ -174,7 +176,7 @@ class StorageService {
   Future<void> _cleanupOldMessages() async {
     try {
       final db = await database;
-      
+
       // Count total messages
       final count = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM messages'),
@@ -197,7 +199,7 @@ class StorageService {
       final cutoffTime = DateTime.now()
           .subtract(AppConstants.messageRetentionPeriod)
           .millisecondsSinceEpoch;
-      
+
       await db.delete(
         'messages',
         where: 'timestamp < ?',
@@ -261,4 +263,3 @@ class StorageService {
     await db.close();
   }
 }
-

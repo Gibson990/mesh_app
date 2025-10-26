@@ -13,10 +13,12 @@ class BluetoothService {
   BluetoothService._internal();
 
   final List<BluetoothDevice> _connectedDevices = [];
+  final List<Map<String, dynamic>> _discoveredDevices = [];
 
   
   StreamController<Message>? _messageStreamController;
   StreamController<int>? _peerCountController;
+  StreamController<List<Map<String, dynamic>>>? _discoveredDevicesController;
   
   bool _isScanning = false;
 
@@ -30,7 +32,14 @@ class BluetoothService {
     return _peerCountController!.stream;
   }
 
+  Stream<List<Map<String, dynamic>>> get discoveredDevicesStream {
+    _discoveredDevicesController ??= StreamController<List<Map<String, dynamic>>>.broadcast();
+    return _discoveredDevicesController!.stream;
+  }
+
   int get connectedPeerCount => _connectedDevices.length;
+  
+  List<Map<String, dynamic>> get discoveredDevices => List.unmodifiable(_discoveredDevices);
 
   // Initialize Bluetooth service
   Future<bool> initialize() async {
@@ -66,9 +75,20 @@ class BluetoothService {
 
       // Listen to scan results
       FlutterBluePlus.scanResults.listen((results) {
+        _discoveredDevices.clear();
         for (ScanResult result in results) {
+          _discoveredDevices.add({
+            'id': result.device.remoteId.toString(),
+            'name': result.device.platformName.isNotEmpty 
+                ? result.device.platformName 
+                : 'Unknown Device',
+            'rssi': result.rssi,
+            'device': result.device,
+          });
           _handleDiscoveredDevice(result.device);
         }
+        // Notify listeners
+        _discoveredDevicesController?.add(List.from(_discoveredDevices));
       });
 
       // Auto-restart scanning after timeout

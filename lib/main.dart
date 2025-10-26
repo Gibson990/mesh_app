@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mesh_app/presentation/screens/home/home_screen.dart';
 import 'package:mesh_app/presentation/theme/app_theme.dart';
+import 'package:mesh_app/services/app_state_provider.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Set preferred orientations
+
+  // Set preferred orientations - PORTRAIT ONLY
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
   ]);
-  
+
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -21,8 +22,17 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
-  runApp(const MeshApp());
+
+  // Initialize app state
+  final appState = AppStateProvider();
+  await appState.initialize();
+
+  runApp(
+    ChangeNotifierProvider<AppStateProvider>.value(
+      value: appState,
+      child: const MeshApp(),
+    ),
+  );
 }
 
 class MeshApp extends StatelessWidget {
