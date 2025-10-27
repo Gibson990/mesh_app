@@ -161,6 +161,10 @@ flutter_native_splash:
   image: "assets/splash/splash_screen.png"
   android: true
   ios: true
+  android_gravity: fill
+  ios_content_mode: scaleAspectFill
   android_12:
     color: "#6C63FF"
     image: "assets/splash/splash_screen.png"
+    android_gravity: fill
+    ios_content_mode: scaleAspectFill

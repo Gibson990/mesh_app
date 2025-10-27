@@ -277,8 +277,11 @@ class ExternalPlatformsService {
       ..fields['chat_id'] = _telegramChatId!
       ..fields['caption'] = formattedCaption;
     
+    // Log request fields for debugging
+    developer.log('📦 [Telegram] Request Fields: ${request.fields}');
+    
     // Add file
-    developer.log('📎 [Telegram] Adding file to request...');
+    developer.log('📎 [Telegram] Adding file to request: ${file.path}');
     request.files.add(await http.MultipartFile.fromPath(fileField, file.path));
     developer.log('📎 [Telegram] File added successfully');
     
